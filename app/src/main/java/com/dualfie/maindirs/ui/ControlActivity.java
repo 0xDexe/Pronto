@@ -65,9 +65,10 @@ public class ControlActivity extends AppCompatActivity implements View.OnClickLi
             Toast.makeText(this, "Bluetooth is not available!", Toast.LENGTH_SHORT).show();
             finish();
         }
-        // only way to work within android v. 6
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},1001);
+        else if (!mBluetoothAdapter.isEnabled()){
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BLUETOOTH);
+        }
 
         mControlMessages = new ArrayList<MessageFormat>();
         mControlAdapter = new MessageRecyclerView(this, mControlMessages);
@@ -124,7 +125,7 @@ public class ControlActivity extends AppCompatActivity implements View.OnClickLi
                         byte[] readBuf = (byte[])(msg.obj);
                         String readMessage = new String(readBuf, 0, msg.arg1);
                         */
-                        String readMessage = new String(msg.obj.toString());
+                        String readMessage = msg.obj.toString();
                         try {
                             messageJSON = new JSONObject(readMessage);
                         } catch (Exception e) {

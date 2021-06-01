@@ -78,6 +78,7 @@ import com.dualfie.maindirs.model.MessageFormat;
 import com.dualfie.maindirs.network.BluetoothComm;
 import com.dualfie.maindirs.ui.view.BluetoothDevicesListView;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Camera2BasicFragment extends AppCompatActivity
@@ -98,6 +99,7 @@ public class Camera2BasicFragment extends AppCompatActivity
     private Bitmap capturedImage;
     private ImageReader mImageReader;
     BluetoothAdapter mBluetoothAdapter;
+    private JSONObject messagejson;
 
 
     /*
@@ -136,8 +138,9 @@ public class Camera2BasicFragment extends AppCompatActivity
     public void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.fragment_camera2_basic);
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
-
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BLUETOOTH);
@@ -148,11 +151,17 @@ public class Camera2BasicFragment extends AppCompatActivity
             public boolean handleMessage(Message message) {
                 switch (message.what) {
                     case Constants.MESSAGE_READ:
-                        //inputstream on
-                        Log.d(TAG, "Control parsing.. ");
 
-                        byte[] readBuf = (byte[]) message.obj;
-                        String control = readBuf.toString();
+                        Log.d(TAG, "Control parsing.. ");
+                        String control = (message.obj).toString();
+                        try {
+                            messagejson = new JSONObject(control);
+                            control = messagejson.get("message").toString();
+                        }catch(JSONException jsonException)
+                        {
+                            Log.e(TAG, "ParserError: ",jsonException );
+                        }
+                        Log.d(TAG, "Parser: "+control);
                         switch (control) {
                             case "STOP":
                                 closeCamera();
@@ -357,6 +366,7 @@ public class Camera2BasicFragment extends AppCompatActivity
         @Override
         public void onImageAvailable(ImageReader reader) {
             Image img = reader.acquireLatestImage();
+            Log.d(TAG, "onImageAvailable: capture done ");
             String parsed = ImageHelper.imageParser(img);
             sendImage(parsed);
         }
