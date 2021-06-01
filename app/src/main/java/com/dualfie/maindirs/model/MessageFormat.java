@@ -28,6 +28,8 @@ public class MessageFormat {
         this.messageUser = from;
         this.by = true;
         messageTime = new Date().getTime();
+
+        image = image.split(",")[1];
         byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
         this.imageBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
     }

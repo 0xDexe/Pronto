@@ -5,9 +5,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -121,22 +123,21 @@ public class ControlActivity extends AppCompatActivity implements View.OnClickLi
                     // Read message from the peer and add to the list view - takes images also
                     case Constants.MESSAGE_READ:
                         Log.d(TAG, "Message Read" );
-                        /*
-                        byte[] readBuf = (byte[])(msg.obj);
-                        String readMessage = new String(readBuf, 0, msg.arg1);
-                        */
+
                         String readMessage = msg.obj.toString();
                         try {
                             messageJSON = new JSONObject(readMessage);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+
                         try {
                             message2 = new MessageFormat(messageJSON.get("message").toString(),
-                                                             messageJSON.get("from").toString(), messageJSON.get("image").toString());
+                                    messageJSON.get("from").toString(), messageJSON.get("image").toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+
                         Log.d( TAG, "Adding to the listview");
                           mControlMessages.add(message2);
                           mControlAdapter.notifyDataSetChanged();

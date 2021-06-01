@@ -28,7 +28,9 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -65,8 +67,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -76,6 +80,7 @@ import com.dualfie.maindirs.Camera.AutoFitTextureView;
 import com.dualfie.maindirs.helpers.JSONUtil;
 import com.dualfie.maindirs.model.MessageFormat;
 import com.dualfie.maindirs.network.BluetoothComm;
+import com.dualfie.maindirs.ui.frag.CamFragment;
 import com.dualfie.maindirs.ui.view.BluetoothDevicesListView;
 
 import org.json.JSONException;
@@ -361,17 +366,21 @@ public class Camera2BasicFragment extends AppCompatActivity
 
 
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = new ImageReader.OnImageAvailableListener() {
+            = reader -> {
+                Image img = reader.acquireLatestImage();
+                Log.d(TAG, "onImageAvailable: capture done ");
+                String parsed = ImageHelper.imageParser(img);
+                sendImage(parsed);
+                Bitmap b = ImageHelper.yuv420ToBitmap(img);
+                //
+                //debug this
 
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            Image img = reader.acquireLatestImage();
-            Log.d(TAG, "onImageAvailable: capture done ");
-            String parsed = ImageHelper.imageParser(img);
-            sendImage(parsed);
-        }
-
-    };
+                new FileTransferAsyncTask(){
+                    @Override
+                    protected void onPostExecute() {
+                         showToast("Image Saved"); }
+        }.execute(b);
+            };
 
 
 
@@ -820,8 +829,7 @@ public class Camera2BasicFragment extends AppCompatActivity
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                                @NonNull CaptureRequest request,
                                                @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
+
                     unlockFocus();
                 }
             };
@@ -890,6 +898,36 @@ public class Camera2BasicFragment extends AppCompatActivity
             // We cast here to ensure the multiplications won't overflow
             return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
                     (long) rhs.getWidth() * rhs.getHeight());
+        }
+
+    }
+
+    public static class FileTransferAsyncTask extends AsyncTask<Bitmap, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Bitmap... bitmaps) {
+            FileOutputStream fout = null;
+
+            // Write to SD Card
+            try {
+                File sdCard = Environment.getExternalStorageDirectory();
+                File dir = new File(sdCard.getAbsolutePath() + "/Dualfie");
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                String time = Calendar.getInstance().getTime().toString();
+                String fileName = "new "+time;
+
+                File outFile = new File(dir, fileName);
+                fout = new FileOutputStream(outFile);
+                bitmaps[0].compress(Bitmap.CompressFormat.JPEG,100,fout);
+                fout.flush();
+                fout.close();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
     }

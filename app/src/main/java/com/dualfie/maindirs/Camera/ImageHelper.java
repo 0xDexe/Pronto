@@ -1,10 +1,14 @@
 package com.dualfie.maindirs.Camera;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.media.Image;
+import android.os.AsyncTask;
+import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
@@ -16,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static androidx.core.math.MathUtils.clamp;
 
 
 public class ImageHelper {
@@ -83,67 +89,71 @@ public class ImageHelper {
 
     static public String imageParser(Image image)
     {
-        int mHeight = image.getHeight();
+        /*int mHeight = image.getHeight();
         int mWidth = image.getWidth();
+
         int[] mIntArray = new int[mWidth*mHeight];
 
-        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
+        final Image.Plane[] planes = image.getPlanes();
+        final ByteBuffer buffer = planes[0].getBuffer();
 
-        decodeYUV420SP(mIntArray, bytes, mWidth, mHeight);
-        Bitmap bmp = Bitmap.createBitmap(mIntArray, mWidth, mHeight, Bitmap.Config.ARGB_8888);
+        final byte[] data = new byte[buffer.capacity()];
+        buffer.get(data);
+        final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        Bitmap.createBitmap(mIntArray, mWidth, mHeight, Bitmap.Config.RGB_565);*/
+
+        Bitmap bitmap = yuv420ToBitmap(image);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] img = baos.toByteArray();
-        String encodedImage = Base64.encodeToString(img, Base64.DEFAULT);
-        return encodedImage;
+        return Base64.encodeToString(img, Base64.DEFAULT);
     }
 
-    static public void decodeYUV420SP(int[] rgba, byte[] yuv420sp, int width,
-                                      int height) {
-        final int frameSize = width * height;
+    public static Bitmap yuv420ToBitmap(Image image) {
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
+        // sRGB array needed by Bitmap static factory method I use below.
+        int[] argbArray = new int[imageWidth * imageHeight];
+        ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
+        yBuffer.position(0);
 
-        for (int j = 0, yp = 0; j < height; j++) {
-            int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-            for (int i = 0; i < width; i++, yp++) {
-                int y = (0xff & ((int) yuv420sp[yp])) - 16;
-                if (y < 0)
-                    y = 0;
-                if ((i & 1) == 0) {
-                    v = (0xff & yuv420sp[uvp++]) - 128;
-                    u = (0xff & yuv420sp[uvp++]) - 128;
-                }
+        ByteBuffer uvBuffer = image.getPlanes()[1].getBuffer();
+        uvBuffer.position(0);
+        int r, g, b;
+        int yValue, uValue, vValue;
 
-                int y1192 = 1192 * y;
-                int r = (y1192 + 1634 * v);
-                int g = (y1192 - 833 * v - 400 * u);
-                int b = (y1192 + 2066 * u);
+        for (int y = 0; y < imageHeight - 2; y++) {
+            for (int x = 0; x < imageWidth - 2; x++) {
+                int yIndex = y * imageWidth + x;
 
-                if (r < 0)
-                    r = 0;
-                else if (r > 262143)
-                    r = 262143;
-                if (g < 0)
-                    g = 0;
-                else if (g > 262143)
-                    g = 262143;
-                if (b < 0)
-                    b = 0;
-                else if (b > 262143)
-                    b = 262143;
+                yValue = (yBuffer.get(yIndex) & 0xff);
 
-                // rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) &
-                // 0xff00) | ((b >> 10) & 0xff);
-                // rgba, divide 2^10 ( >> 10)
-                rgba[yp] = ((r << 14) & 0xff000000) | ((g << 6) & 0xff0000)
-                        | ((b >> 2) | 0xff00);
+                int uvx = x / 2;
+                int uvy = y / 2;
+
+                int uIndex = uvy * imageWidth + 2 * uvx;
+
+                int vIndex = uIndex + 1;
+
+                uValue = (uvBuffer.get(uIndex) & 0xff) - 128;
+                vValue = (uvBuffer.get(vIndex) & 0xff) - 128;
+                r = (int) (yValue + 1.370705f * vValue);
+                g = (int) (yValue - (0.698001f * vValue) - (0.337633f * uValue));
+                b = (int) (yValue + 1.732446f * uValue);
+                r = clamp(r, 0, 255);
+                g = clamp(g, 0, 255);
+                b = clamp(b, 0, 255);
+
+                argbArray[yIndex] = (255 << 24) | (r & 255) << 16 | (g & 255) << 8 | (b & 255);
             }
         }
 
+        return Bitmap.createBitmap(argbArray, imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+    }
 
-} }
+
+}
 
 
 
