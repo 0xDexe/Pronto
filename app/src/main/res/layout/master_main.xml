@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout tools:context="com.dualfie.maindirs.ui.ChatActivity"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:focusable="true"
+        android:text="@string/fa_paper_plane"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorAccent"
+        android:textColor="@color/colorPrimaryLight"
+        android:id="@+id/send" android:clickable="true"/>
+
+
+    <EditText
+        android:layout_height="wrap_content"
+        android:layout_width="220dp"
+        android:textColor="@color/primaryText"
+        android:id="@+id/input"
+        android:inputType="text"
+        android:autofillHints=""
+        android:layout_alignParentStart="true"
+        android:layout_alignTop="@+id/send"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:id="@+id/list_of_messages"
+        android:layout_above="@+id/send"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="16dp"/>
+</RelativeLayout>

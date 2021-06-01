@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="btn_master" type="id" />
+    <item name="btn_localcamera" type="id" />
+    <item name="btn_master_chat" type="id" />
+    <item name="btn_stop" type="id" />
+    <item name="btn_start" type="id" />
+    <item name="btn_capture" type="id" />
+    <item name="check_toggle" type="id" />
+    <item name= "list_of_messages" type="id"/>
+
+</resources>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:focusable="true"
+            android:text = "STOP"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/btn_stop"
+            android:clickable="true" />
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:focusable="true"
+            android:text = "CAPTURE"
+            android:id="@+id/btn_capture"
+            android:layout_centerInParent="true"
+            android:layout_alignParentBottom="true"
+            android:clickable="true" />
+
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="START" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/list_of_messages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/btn_start"
+        android:layout_marginBottom="40dp"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="10dp" />
+
+</RelativeLayout>
