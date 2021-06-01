@@ -24,7 +24,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.CameraActivity" />
+        <activity android:name=".ui.Camera2BasicFragment" />
         <activity android:name=".ui.ChatActivity" />
         <activity android:name=".ui.ControlActivity" />
     </application>
